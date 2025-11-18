@@ -10,16 +10,20 @@ document.addEventListener("DOMContentLoaded", function () {
   const hardLabel = document.getElementById("hard-label");
   const cardStatsContainer = document.querySelector(".stats-cards");
 
+  // FIXED: Username validation (LeetCode usernames allow _, -, ., and longer length)
   function validateUsername(username) {
     if (username.trim() === "") {
       alert("Username should not be empty");
       return false;
     }
-    const regex = /^[a-zA-Z0-9_-]{1,20}$/;
+
+    const regex = /^[a-zA-Z0-9._-]{1,30}$/;
     const isMatching = regex.test(username);
+
     if (!isMatching) {
-      alert("Invalid Username");
+      alert("Invalid Username Format");
     }
+
     return isMatching;
   }
 
@@ -28,8 +32,9 @@ document.addEventListener("DOMContentLoaded", function () {
       searchButton.textContent = "Searching...";
       searchButton.disabled = true;
 
-      // NEW API (No CORS issues)
-      const apiUrl = `https://leetcode-stats-api.herokuapp.com/${username}`;
+      // FIXED: Encoding + lowercase (important for API success)
+      const safeUsername = encodeURIComponent(username.trim().toLowerCase());
+      const apiUrl = `https://leetcode-stats-api.herokuapp.com/${safeUsername}`;
 
       const response = await fetch(apiUrl);
       const data = await response.json();
@@ -39,12 +44,10 @@ document.addEventListener("DOMContentLoaded", function () {
         return;
       }
 
-      console.log("Fetched Data:", data);
-
       displayUserData(data);
     } catch (error) {
       statsContainer.innerHTML = `<p style="color: red;">Failed to fetch details</p>`;
-      console.error(error);
+      console.error("API Error:", error);
     } finally {
       searchButton.textContent = "Search";
       searchButton.disabled = false;
@@ -58,7 +61,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function displayUserData(data) {
-    // Extract values from API
+    // FIXED: Extract values properly from API
     const {
       easySolved,
       totalEasy,
@@ -69,39 +72,39 @@ document.addEventListener("DOMContentLoaded", function () {
       submissionStats
     } = data;
 
-    // Submission stats from nested object
     const totalSubmissions = submissionStats.totalSubmission;
     const easySubmissions = submissionStats.easySubmission;
     const mediumSubmissions = submissionStats.mediumSubmission;
     const hardSubmissions = submissionStats.hardSubmission;
 
-    // Update Progress Circles
+    // Progress bars update
     updateProgress(easySolved, totalEasy, easyLabel, easyProgressCircle);
     updateProgress(mediumSolved, totalMedium, mediumLabel, mediumProgressCircle);
     updateProgress(hardSolved, totalHard, hardLabel, hardProgressCircle);
 
-    // Cards
+    // Cards update
     const cardsData = [
       { label: "Overall Submission", value: totalSubmissions },
       { label: "Easy Submission", value: easySubmissions },
       { label: "Medium Submission", value: mediumSubmissions },
-      { label: "Hard Submission", value: hardSubmissions },
+      { label: "Hard Submission", value: hardSubmissions }
     ];
 
     cardStatsContainer.innerHTML = cardsData
       .map(
-        data =>
-          `<div class="card">
-            <h4>${data.label}</h4>
-            <p>${data.value}</p>
-          </div>`
+        (item) => `
+        <div class="card">
+          <h4>${item.label}</h4>
+          <p>${item.value}</p>
+        </div>`
       )
       .join("");
   }
 
+  // Search button click handler
   searchButton.addEventListener("click", function () {
     const username = usernameInput.value;
-    console.log("Username entered:", username);
+
     if (validateUsername(username)) {
       fetchUserDetails(username);
     }
