@@ -28,7 +28,7 @@ document.addEventListener("DOMContentLoaded", function () {
       searchButton.textContent = "Searching...";
       searchButton.disabled = true;
 
-      // NEW API (CORS-Free & Vercel Friendly)
+      // NEW API (No CORS issues)
       const apiUrl = `https://leetcode-stats-api.herokuapp.com/${username}`;
 
       const response = await fetch(apiUrl);
@@ -58,6 +58,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function displayUserData(data) {
+    // Extract values from API
     const {
       easySolved,
       totalEasy,
@@ -65,16 +66,21 @@ document.addEventListener("DOMContentLoaded", function () {
       totalMedium,
       hardSolved,
       totalHard,
-      totalSubmissions,
-      easySubmissions,
-      mediumSubmissions,
-      hardSubmissions
+      submissionStats
     } = data;
 
+    // Submission stats from nested object
+    const totalSubmissions = submissionStats.totalSubmission;
+    const easySubmissions = submissionStats.easySubmission;
+    const mediumSubmissions = submissionStats.mediumSubmission;
+    const hardSubmissions = submissionStats.hardSubmission;
+
+    // Update Progress Circles
     updateProgress(easySolved, totalEasy, easyLabel, easyProgressCircle);
     updateProgress(mediumSolved, totalMedium, mediumLabel, mediumProgressCircle);
     updateProgress(hardSolved, totalHard, hardLabel, hardProgressCircle);
 
+    // Cards
     const cardsData = [
       { label: "Overall Submission", value: totalSubmissions },
       { label: "Easy Submission", value: easySubmissions },
